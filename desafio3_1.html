@@ -423,31 +423,7 @@ body::after {
   flex-shrink: 0;
 }
 
-/* TIMER */
-.r-timer {
-  font-family: 'Orbitron', monospace;
-  font-size: clamp(36px, 10vw, 64px);
-  font-weight: 900;
-  color: var(--red);
-  text-shadow: var(--glow-red);
-  text-align: center;
-  letter-spacing: 6px;
-  margin: 8px 0;
-  animation: pulse-red 1.5s ease-in-out infinite;
-}
 
-@keyframes pulse-red {
-  0%, 100% { text-shadow: var(--glow-red); }
-  50% { text-shadow: 0 0 20px #ff003c, 0 0 60px rgba(255,0,60,0.5); }
-}
-
-.r-timer-label {
-  font-size: 9px;
-  letter-spacing: 5px;
-  color: rgba(255,0,60,0.5);
-  text-align: center;
-  margin-bottom: 36px;
-}
 
 /* FOOTER */
 .r-footer {
@@ -524,9 +500,6 @@ AGUARDANDO CHAVE DE BYPASS...</div>
   <div class="rules-title">O ENIGMA DA<br>TRANSPARÊNCIA</div>
   <div class="rules-subtitle">// DESAFIO 03 — INSTRUÇÕES DE BYPASS //</div>
 
-  <div class="r-timer" id="countdown">01:15</div>
-  <div class="r-timer-label">// TEMPO RESTANTE ESTIMADO PARA ESTE MÓDULO</div>
-
   <div class="r-section">
     <div class="r-section-label"><span>01</span> SITUAÇÃO</div>
     <div class="r-body">
@@ -575,7 +548,7 @@ AGUARDANDO CHAVE DE BYPASS...</div>
   <div class="r-section">
     <div class="r-section-label"><span>05</span> PARÂMETROS DO MÓDULO</div>
     <div class="r-body">
-      <p>Este módulo foi projetado para ser concluído em <strong>aproximadamente 75 segundos</strong> por uma equipe coordenada. Se travarem por mais de 90 segundos, o sistema de voz da IA emitirá um sinal de interferência — isso indica que um operador humano pode fornecer assistência parcial.</p>
+      <p>Este módulo foi projetado para uma equipe coordenada. Se travarem por muito tempo, o sistema de voz da IA emitirá um sinal de interferência — isso indica que um operador humano pode fornecer assistência parcial.</p>
       <p>Não é necessário decifrar todo o conteúdo dos documentos para avançar. O que importa é a análise estrutural — o que os documentos revelam sobre si mesmos, não apenas o que dizem.</p>
     </div>
   </div>
@@ -606,7 +579,6 @@ function verificar() {
       document.getElementById('lock-screen').style.display = 'none';
       const rp = document.getElementById('rules-page');
       rp.classList.add('visible');
-      startCountdown();
     }, 300);
   } else {
     tentativas++;
@@ -629,20 +601,6 @@ function verificar() {
 document.getElementById('senha-input').addEventListener('keydown', function(e) {
   if (e.key === 'Enter') verificar();
 });
-
-// Countdown timer
-function startCountdown() {
-  let total = 75;
-  const el = document.getElementById('countdown');
-  const tick = setInterval(() => {
-    total--;
-    if (total <= 0) { clearInterval(tick); el.textContent = '00:00'; return; }
-    const m = String(Math.floor(total / 60)).padStart(2, '0');
-    const s = String(total % 60).padStart(2, '0');
-    el.textContent = `${m}:${s}`;
-    if (total <= 20) el.style.color = '#ff003c';
-  }, 1000);
-}
 
 // Show lock screen after boot
 setTimeout(() => {
