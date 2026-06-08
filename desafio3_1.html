@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>SISTEMA CORROMPIDO — ACESSO RESTRITO</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&family=VT323&display=swap');
+
+:root {
+  --cyan: #00ffe7;
+  --red: #ff003c;
+  --yellow: #ffe600;
+  --bg: #010a0e;
+  --surface: #050f14;
+  --grid: rgba(0,255,231,0.04);
+  --glow: 0 0 8px #00ffe7, 0 0 24px rgba(0,255,231,0.3);
+  --glow-red: 0 0 8px #ff003c, 0 0 24px rgba(255,0,60,0.3);
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+html, body {
+  height: 100%;
+  background: var(--bg);
+  color: var(--cyan);
+  font-family: 'Share Tech Mono', monospace;
+  overflow-x: hidden;
+}
+
+/* SCANLINE + GRID BACKGROUND */
+body::before {
+  content: '';
+  position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background-image:
+    repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,255,231,0.015) 2px, rgba(0,255,231,0.015) 4px),
+    repeating-linear-gradient(90deg, transparent, transparent 40px, var(--grid) 40px, var(--grid) 41px),
+    repeating-linear-gradient(0deg, transparent, transparent 40px, var(--grid) 40px, var(--grid) 41px);
+}
+
+/* SCANLINE SWEEP */
+body::after {
+  content: '';
+  position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background: linear-gradient(to bottom,
+    transparent 0%,
+    rgba(0,255,231,0.03) 50%,
+    transparent 100%);
+  background-size: 100% 8px;
+  animation: scanline 6s linear infinite;
+}
+
+@keyframes scanline {
+  0% { background-position: 0 0; }
+  100% { background-position: 0 100vh; }
+}
+
+/* ===== LOCK SCREEN ===== */
+#lock-screen {
+  position: fixed; inset: 0; z-index: 10;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 24px;
+  background: var(--bg);
+}
+
+.lock-glitch {
+  font-family: 'Orbitron', monospace;
+  font-size: clamp(10px, 2.5vw, 13px);
+  letter-spacing: 6px;
+  color: var(--red);
+  text-transform: uppercase;
+  margin-bottom: 8px;
+  animation: flicker 3s infinite;
+}
+
+@keyframes flicker {
+  0%, 100% { opacity: 1; }
+  92% { opacity: 1; }
+  93% { opacity: 0.2; }
+  94% { opacity: 1; }
+  96% { opacity: 0.4; }
+  97% { opacity: 1; }
+}
+
+.lock-title {
+  font-family: 'Orbitron', monospace;
+  font-size: clamp(22px, 6vw, 48px);
+  font-weight: 900;
+  color: var(--cyan);
+  text-shadow: var(--glow);
+  text-align: center;
+  line-height: 1.1;
+  margin-bottom: 6px;
+  animation: flicker 4s 1s infinite;
+}
+
+.lock-sub {
+  font-family: 'VT323', monospace;
+  font-size: clamp(16px, 4vw, 24px);
+  color: rgba(0,255,231,0.5);
+  letter-spacing: 3px;
+  margin-bottom: 48px;
+}
+
+.lock-box {
+  width: 100%;
+  max-width: 380px;
+  border: 1px solid var(--cyan);
+  box-shadow: var(--glow), inset 0 0 20px rgba(0,255,231,0.03);
+  padding: 32px 28px;
+  position: relative;
+}
+
+.lock-box::before, .lock-box::after {
+  content: '';
+  position: absolute;
+  width: 12px; height: 12px;
+  border-color: var(--yellow);
+  border-style: solid;
+}
+.lock-box::before { top: -1px; left: -1px; border-width: 2px 0 0 2px; }
+.lock-box::after  { bottom: -1px; right: -1px; border-width: 0 2px 2px 0; }
+
+.lock-label {
+  font-size: 10px;
+  letter-spacing: 4px;
+  color: rgba(0,255,231,0.5);
+  text-transform: uppercase;
+  margin-bottom: 12px;
+  display: block;
+}
+
+.lock-input-wrap {
+  position: relative;
+  margin-bottom: 20px;
+}
+
+.lock-input-wrap::before {
+  content: '> ';
+  position: absolute;
+  left: 14px; top: 50%;
+  transform: translateY(-50%);
+  color: var(--cyan);
+  font-size: 16px;
+}
+
+#senha-input {
+  width: 100%;
+  background: rgba(0,255,231,0.04);
+  border: 1px solid rgba(0,255,231,0.3);
+  color: var(--cyan);
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 18px;
+  letter-spacing: 4px;
+  padding: 14px 16px 14px 36px;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  text-transform: uppercase;
+  caret-color: var(--cyan);
+}
+
+#senha-input:focus {
+  border-color: var(--cyan);
+  box-shadow: var(--glow);
+}
+
+#senha-input.erro {
+  border-color: var(--red);
+  box-shadow: var(--glow-red);
+  animation: shake 0.4s ease;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-8px); }
+  40% { transform: translateX(8px); }
+  60% { transform: translateX(-5px); }
+  80% { transform: translateX(5px); }
+}
+
+#btn-acesso {
+  width: 100%;
+  background: transparent;
+  border: 1px solid var(--cyan);
+  color: var(--cyan);
+  font-family: 'Orbitron', monospace;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 5px;
+  text-transform: uppercase;
+  padding: 14px;
+  cursor: pointer;
+  transition: background 0.2s, box-shadow 0.2s, color 0.2s;
+  position: relative;
+  overflow: hidden;
+}
+
+#btn-acesso:hover {
+  background: rgba(0,255,231,0.08);
+  box-shadow: var(--glow);
+}
+
+#btn-acesso:active { background: rgba(0,255,231,0.15); }
+
+#erro-msg {
+  margin-top: 16px;
+  font-size: 11px;
+  letter-spacing: 3px;
+  color: var(--red);
+  text-align: center;
+  min-height: 18px;
+  text-shadow: var(--glow-red);
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+#erro-msg.visible { opacity: 1; }
+
+.tentativas {
+  margin-top: 12px;
+  font-size: 10px;
+  letter-spacing: 2px;
+  color: rgba(255,0,60,0.4);
+  text-align: center;
+}
+
+/* BOOT ANIMATION */
+#boot-screen {
+  position: fixed; inset: 0; z-index: 20;
+  background: var(--bg);
+  display: flex; align-items: center; justify-content: center;
+  padding: 32px;
+  animation: bootfade 0.5s 2.8s forwards;
+}
+
+@keyframes bootfade {
+  to { opacity: 0; pointer-events: none; }
+}
+
+.boot-text {
+  font-family: 'VT323', monospace;
+  font-size: clamp(14px, 3.5vw, 18px);
+  color: var(--cyan);
+  line-height: 2;
+  white-space: pre;
+  overflow: hidden;
+  width: 0;
+  animation: typewriter 2.4s steps(200) 0.2s forwards;
+}
+
+@keyframes typewriter {
+  to { width: 100%; }
+}
+
+/* ===== RULES PAGE ===== */
+#rules-page {
+  display: none;
+  min-height: 100vh;
+  padding: 48px 24px 80px;
+  position: relative; z-index: 5;
+  max-width: 680px;
+  margin: 0 auto;
+}
+
+#rules-page.visible { display: block; }
+
+/* ACCESS GRANTED FLASH */
+#access-flash {
+  position: fixed; inset: 0; z-index: 15;
+  background: var(--cyan);
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.08s;
+}
+#access-flash.flash { animation: flashin 0.5s forwards; }
+@keyframes flashin {
+  0% { opacity: 0.8; }
+  100% { opacity: 0; }
+}
+
+/* RULES HEADER */
+.rules-stamp {
+  font-family: 'Orbitron', monospace;
+  font-size: 10px;
+  letter-spacing: 5px;
+  color: rgba(0,255,231,0.4);
+  margin-bottom: 6px;
+}
+
+.rules-eyebrow {
+  font-size: 11px;
+  letter-spacing: 4px;
+  color: var(--yellow);
+  text-transform: uppercase;
+  margin-bottom: 14px;
+  text-shadow: 0 0 8px var(--yellow);
+}
+
+.rules-title {
+  font-family: 'Orbitron', monospace;
+  font-size: clamp(20px, 5vw, 36px);
+  font-weight: 900;
+  color: var(--cyan);
+  text-shadow: var(--glow);
+  line-height: 1.1;
+  margin-bottom: 6px;
+}
+
+.rules-subtitle {
+  font-family: 'VT323', monospace;
+  font-size: clamp(18px, 4vw, 26px);
+  color: rgba(0,255,231,0.5);
+  letter-spacing: 2px;
+  margin-bottom: 40px;
+  border-bottom: 1px solid rgba(0,255,231,0.15);
+  padding-bottom: 28px;
+}
+
+/* SECTION */
+.r-section {
+  margin-bottom: 36px;
+}
+
+.r-section-label {
+  font-family: 'Orbitron', monospace;
+  font-size: 9px;
+  letter-spacing: 5px;
+  color: var(--yellow);
+  text-transform: uppercase;
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.r-section-label::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: rgba(255,230,0,0.2);
+}
+
+.r-section-label span { color: rgba(255,230,0,0.4); }
+
+.r-body {
+  font-size: 14px;
+  line-height: 1.9;
+  color: rgba(0,255,231,0.8);
+  letter-spacing: 0.3px;
+}
+
+.r-body p { margin-bottom: 14px; }
+.r-body p:last-child { margin-bottom: 0; }
+
+.r-body strong { color: var(--cyan); }
+
+/* CALLOUT BOX */
+.r-callout {
+  border: 1px solid rgba(0,255,231,0.2);
+  background: rgba(0,255,231,0.03);
+  padding: 18px 20px;
+  margin: 20px 0;
+  position: relative;
+}
+
+.r-callout::before {
+  content: '//';
+  position: absolute;
+  top: -8px; left: 14px;
+  background: var(--bg);
+  padding: 0 6px;
+  font-size: 12px;
+  color: var(--cyan);
+}
+
+/* WARNING BOX */
+.r-warning {
+  border: 1px solid rgba(255,0,60,0.3);
+  background: rgba(255,0,60,0.04);
+  padding: 16px 20px;
+  margin: 20px 0;
+  position: relative;
+}
+
+.r-warning::before {
+  content: '! ATENÇÃO';
+  position: absolute;
+  top: -8px; left: 14px;
+  background: var(--bg);
+  padding: 0 6px;
+  font-size: 9px;
+  letter-spacing: 3px;
+  color: var(--red);
+}
+
+.r-warning p { color: rgba(255,0,60,0.8); font-size: 13px; }
+
+/* STEPS */
+.r-steps {
+  counter-reset: step;
+  list-style: none;
+  margin-top: 6px;
+}
+
+.r-steps li {
+  counter-increment: step;
+  display: flex;
+  gap: 16px;
+  margin-bottom: 20px;
+  font-size: 13.5px;
+  line-height: 1.7;
+  color: rgba(0,255,231,0.8);
+}
+
+.r-steps li::before {
+  content: counter(step, decimal-leading-zero);
+  font-family: 'Orbitron', monospace;
+  font-size: 11px;
+  color: var(--yellow);
+  min-width: 28px;
+  padding-top: 3px;
+  text-shadow: 0 0 6px var(--yellow);
+  flex-shrink: 0;
+}
+
+/* TIMER */
+.r-timer {
+  font-family: 'Orbitron', monospace;
+  font-size: clamp(36px, 10vw, 64px);
+  font-weight: 900;
+  color: var(--red);
+  text-shadow: var(--glow-red);
+  text-align: center;
+  letter-spacing: 6px;
+  margin: 8px 0;
+  animation: pulse-red 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse-red {
+  0%, 100% { text-shadow: var(--glow-red); }
+  50% { text-shadow: 0 0 20px #ff003c, 0 0 60px rgba(255,0,60,0.5); }
+}
+
+.r-timer-label {
+  font-size: 9px;
+  letter-spacing: 5px;
+  color: rgba(255,0,60,0.5);
+  text-align: center;
+  margin-bottom: 36px;
+}
+
+/* FOOTER */
+.r-footer {
+  margin-top: 56px;
+  border-top: 1px solid rgba(0,255,231,0.1);
+  padding-top: 20px;
+  font-size: 10px;
+  letter-spacing: 3px;
+  color: rgba(0,255,231,0.2);
+  display: flex;
+  justify-content: space-between;
+}
+
+/* CORNER DECORATION */
+.corner-tl, .corner-br {
+  position: fixed;
+  width: 60px; height: 60px;
+  z-index: 1; pointer-events: none;
+}
+.corner-tl { top: 12px; left: 12px; border-top: 1px solid rgba(0,255,231,0.3); border-left: 1px solid rgba(0,255,231,0.3); }
+.corner-br { bottom: 12px; right: 12px; border-bottom: 1px solid rgba(0,255,231,0.3); border-right: 1px solid rgba(0,255,231,0.3); }
+</style>
+</head>
+<body>
+
+<div class="corner-tl"></div>
+<div class="corner-br"></div>
+<div id="access-flash"></div>
+
+<!-- BOOT SCREEN -->
+<div id="boot-screen">
+  <div class="boot-text">SISTEMA: HUMANOS × IA — BUILD 2026.06
+INICIALIZANDO MÓDULO DE SEGURANÇA...
+VERIFICANDO INTEGRIDADE DO ARQUIVO...
+CRIPTOGRAFIA ATIVA — ACESSO REQUER AUTORIZAÇÃO
+AGUARDANDO CHAVE DE BYPASS...</div>
+</div>
+
+<!-- LOCK SCREEN -->
+<div id="lock-screen">
+  <div class="lock-glitch">⚠ sistema corrompido ⚠</div>
+  <div class="lock-title">ACESSO<br>RESTRITO</div>
+  <div class="lock-sub">// NÍVEL 3 — TRANSPARÊNCIA //</div>
+
+  <div class="lock-box">
+    <span class="lock-label">// insira a chave de bypass</span>
+
+    <div class="lock-input-wrap">
+      <input
+        type="text"
+        id="senha-input"
+        placeholder="_ _ _ _"
+        autocomplete="off"
+        autocorrect="off"
+        spellcheck="false"
+        autofocus
+      />
+    </div>
+
+    <button id="btn-acesso" onclick="verificar()">
+      AUTENTICAR
+    </button>
+
+    <div id="erro-msg">// CHAVE INVÁLIDA — ACESSO NEGADO</div>
+    <div class="tentativas" id="tentativas-msg"></div>
+  </div>
+</div>
+
+<!-- RULES PAGE -->
+<div id="rules-page">
+
+  <div class="rules-stamp">HUMANOS × IA — FEIRA PEDAGÓGICA 2026</div>
+  <div class="rules-eyebrow">▮ ACESSO CONCEDIDO — NÍVEL 3</div>
+  <div class="rules-title">O ENIGMA DA<br>TRANSPARÊNCIA</div>
+  <div class="rules-subtitle">// DESAFIO 03 — INSTRUÇÕES DE BYPASS //</div>
+
+  <div class="r-timer" id="countdown">01:15</div>
+  <div class="r-timer-label">// TEMPO RESTANTE ESTIMADO PARA ESTE MÓDULO</div>
+
+  <div class="r-section">
+    <div class="r-section-label"><span>01</span> SITUAÇÃO</div>
+    <div class="r-body">
+      <p>O desenvolvedor do sistema — o único humano que conhecia o código de bypass completo — tentou deixar uma trilha antes de ser silenciado. Ele fragmentou a senha final entre <strong>cinco documentos classificados</strong>, cada um escrito por uma voz diferente: pensadores reais que, em momentos distintos da história, alertaram a humanidade sobre o caminho que a tecnologia estava tomando.</p>
+      <p>Esses documentos estão misturados a arquivos falsos sobre a mesa. A IA corrompeu o sistema de etiquetagem — mas não conseguiu apagar tudo. Algo nos próprios documentos ainda revela quem é quem.</p>
+    </div>
+  </div>
+
+  <div class="r-section">
+    <div class="r-section-label"><span>02</span> O QUE ESTÁ SOBRE A MESA</div>
+    <div class="r-body">
+      <p>Vocês encontrarão uma superfície transparente fixada — uma placa de acetato com marcações coloridas. Sob ela, ou ao lado dela, há uma pilha de documentos impressos.</p>
+      <div class="r-callout">
+        <p>Cada documento foi escrito por uma figura histórica diferente. Cada um trata de um aspecto distinto do risco que a inteligência artificial representa — ou representou — para a humanidade. Os documentos têm identidades visuais diferentes entre si.</p>
+      </div>
+      <p>Há também um documento que se destaca dos demais — ele é o <strong>relatório central</strong>. É o único que menciona os outros por nome e os coloca em ordem. Encontrá-lo é o primeiro passo.</p>
+    </div>
+  </div>
+
+  <div class="r-section">
+    <div class="r-section-label"><span>03</span> A MECÂNICA DO ACETATO</div>
+    <div class="r-body">
+      <p>A placa transparente sobre a mesa não é decorativa. Ela é a chave de decriptação física do sistema.</p>
+      <p>Nela, há <strong>cinco janelas marcadas em cores diferentes</strong>. Cada janela corresponde a exatamente um dos documentos. Quando o documento correto é posicionado sob a janela correta, a marcação isola uma única palavra no texto — a palavra que aquele documento contribui para a senha.</p>
+      <div class="r-callout">
+        <p>A correspondência entre janela e documento não é aleatória. Os próprios documentos carregam a informação necessária para saber qual vai onde. Observem com cuidado o que cada um tem em comum com sua janela.</p>
+      </div>
+      <div class="r-warning">
+        <p>O acetato não entrega a senha. Ele apenas isola. A ordem em que as palavras devem ser lidas não é a ordem em que vocês as encontrarem — ela também precisa ser descoberta.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="r-section">
+    <div class="r-section-label"><span>04</span> PROTOCOLO DE EXECUÇÃO</div>
+    <ol class="r-steps">
+      <li>Localizem o relatório central entre os documentos. Ele é o mapa — leia-o com atenção antes de qualquer outra coisa.</li>
+      <li>Identifiquem os cinco documentos legítimos entre os demais arquivos. Os pensadores que os escreveram têm uma relação direta com o tema desta sala.</li>
+      <li>Associem cada documento à sua janela no acetato. A correspondência está nos próprios materiais — não é necessário conhecer os autores previamente.</li>
+      <li>Posicionem cada documento sob sua janela correspondente e registrem a palavra isolada pela marcação colorida.</li>
+      <li>Usem o relatório central para determinar a ordem correta das cinco palavras. A senha final é a sequência completa.</li>
+      <li>Digitem a senha no formulário do QR Code para concluir o módulo e acessar o protocolo final.</li>
+    </ol>
+  </div>
+
+  <div class="r-section">
+    <div class="r-section-label"><span>05</span> PARÂMETROS DO MÓDULO</div>
+    <div class="r-body">
+      <p>Este módulo foi projetado para ser concluído em <strong>aproximadamente 75 segundos</strong> por uma equipe coordenada. Se travarem por mais de 90 segundos, o sistema de voz da IA emitirá um sinal de interferência — isso indica que um operador humano pode fornecer assistência parcial.</p>
+      <p>Não é necessário decifrar todo o conteúdo dos documentos para avançar. O que importa é a análise estrutural — o que os documentos revelam sobre si mesmos, não apenas o que dizem.</p>
+    </div>
+  </div>
+
+  <div class="r-footer">
+    <span>DESAFIO-03 // TRANSPARÊNCIA</span>
+    <span>HUMANOS × IA // 2026</span>
+  </div>
+
+</div>
+
+<script>
+let tentativas = 0;
+
+function verificar() {
+  const input = document.getElementById('senha-input');
+  const val = input.value.trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+  const correto = 'vies';
+
+  if (val === correto) {
+    // Flash
+    const flash = document.getElementById('access-flash');
+    flash.classList.add('flash');
+    setTimeout(() => flash.classList.remove('flash'), 500);
+
+    // Hide lock, show rules
+    setTimeout(() => {
+      document.getElementById('lock-screen').style.display = 'none';
+      const rp = document.getElementById('rules-page');
+      rp.classList.add('visible');
+      startCountdown();
+    }, 300);
+  } else {
+    tentativas++;
+    input.classList.add('erro');
+    setTimeout(() => input.classList.remove('erro'), 500);
+
+    const msg = document.getElementById('erro-msg');
+    msg.classList.add('visible');
+
+    if (tentativas >= 3) {
+      document.getElementById('tentativas-msg').textContent =
+        `// ALERTA: ${tentativas} TENTATIVAS INCORRETAS REGISTRADAS`;
+    }
+
+    input.value = '';
+    setTimeout(() => msg.classList.remove('visible'), 2500);
+  }
+}
+
+document.getElementById('senha-input').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') verificar();
+});
+
+// Countdown timer
+function startCountdown() {
+  let total = 75;
+  const el = document.getElementById('countdown');
+  const tick = setInterval(() => {
+    total--;
+    if (total <= 0) { clearInterval(tick); el.textContent = '00:00'; return; }
+    const m = String(Math.floor(total / 60)).padStart(2, '0');
+    const s = String(total % 60).padStart(2, '0');
+    el.textContent = `${m}:${s}`;
+    if (total <= 20) el.style.color = '#ff003c';
+  }, 1000);
+}
+
+// Show lock screen after boot
+setTimeout(() => {
+  document.getElementById('lock-screen').style.opacity = '1';
+}, 3000);
+</script>
+</body>
+</html>
